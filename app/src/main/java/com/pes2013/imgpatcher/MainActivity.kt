@@ -22,6 +22,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 import java.io.FileOutputStream
+import java.io.RandomAccessFile
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
@@ -296,23 +297,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnMultiExport).setOnClickListener { exportSelectedEntriesBatch() }
         findViewById<Button>(R.id.btnMultiDelete).setOnClickListener { deleteSelectedEntriesBatch() }
 
-        // Pratinjau Full Screen saat gambar diketuk
+        // Pratinjau Full Screen atau Pemutar Media saat kotak pratinjau diketuk
         ivTexturePreview.setOnClickListener {
-            if (activePreviewBitmap != null) {
-                showFullScreenImagePreview()
-            } else if (currentRawBinBytes != null && selectedEntry != null) {
-                PesMediaInspector.openUniversalViewer(this, selectedEntry!!.name, currentRawBinBytes!!, activeDetectedMediaType)
-            }
+            openActiveEntryMedia()
         }
 
         btnOpenMediaViewer.setOnClickListener {
-            val entry = selectedEntry ?: return@setOnClickListener
-            val bytes = currentRawBinBytes ?: return@setOnClickListener
-            if (activePreviewBitmap != null) {
-                showFullScreenImagePreview()
-            } else {
-                PesMediaInspector.openUniversalViewer(this, entry.name, bytes, activeDetectedMediaType)
-            }
+            openActiveEntryMedia()
         }
 
         btnReplacePng.setOnClickListener {
@@ -337,6 +328,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun openActiveEntryMedia() {
+        val entry = selectedEntry ?: return
+        val img = currentImgFile ?: return
+        if (activePreviewBitmap != null) {
+            showFullScreenImagePreview()
+        } else if (entry.size > 0L) {
+            PesMediaInspector.openUniversalViewerFromArchive(
+                context = this,
+                imgFile = img,
+                entry = entry,
+                stagedFile = stagedPatches[entry.index],
+                inMemoryBytes = currentRawBinBytes,
+                type = activeDetectedMediaType
+            )
+        }
+    }
+
     private fun populateImgGuideText() {
         tvImgGuideContent.text = """
             PANDUAN DAFTAR FILE .IMG PES 2013 & KEGUNAANNYA
@@ -352,7 +360,7 @@ class MainActivity : AppCompatActivity() {
               Musik latar menu utama (Soundtrack / BGM) dan lagu masuk lapangan.
 
             • dt03.img :
-              Video pembuka (Intro), animasi trofi juara, dan cutscene stadion (format SFD/MPEG).
+              Video pembuka (Intro), animasi trofi juara, dan cutscene stadion (slot besar SFD/USM).
 
             • dt04.img :
               Database utama pemain, nama tim, statistik, transfer, dan formasi (unnamed_1900 - 2000+).
@@ -384,7 +392,7 @@ class MainActivity : AppCompatActivity() {
             TIPS ZARCHIVER & MEDIA EXPLORER:
             - Tekan lama pada daftar slot untuk memilih 10 - 100+ file sekaligus (Salin, Tempel dari HP/Antar-Slot, Ekspor, atau Hapus).
             - Ketuk gambar pratinjau untuk melihat ukuran penuh (Full Screen).
-            - Gunakan 'Putar / Buka Isi File' untuk mendengarkan audio ADX, memutar video, atau melihat teks data pemain.
+            - Gunakan 'Putar / Buka Isi File' untuk mendengarkan audio ADX, memutar video SFD/USM, atau melihat teks data pemain.
         """.trimIndent()
     }
 
@@ -635,10 +643,47 @@ class MainActivity : AppCompatActivity() {
     private fun inspectBinSlot(entry: AfsEntryInfo) {
         val img = currentImgFile ?: return
         selectedEntry = entry
-        tvSelectedBinInfo.text = "Memuat ${entry.name}..."
+        tvSelectedBinInfo.text = "Memeriksa ${entry.name}..."
 
         thread {
             try {
+                // 1. Baca header 64 KB dulu untuk deteksi instan (aman untuk file video ratusan MB di dt03.img)
+                val headerBytes = readEntryHead(img, entry, stagedPatches[entry.index], 65536)
+                val quickMediaType = PesMediaInspector.detectMediaType(headerBytes, false, entry.size)
+
+                // Jika langsung terdeteksi Video (SFD/MPEG/USM) atau file > 12 MB, jangan muat semua ke RAM
+                if (quickMediaType == PesMediaType.VIDEO_SFD_MPEG ||
+                    quickMediaType == PesMediaType.VIDEO_USM_CRID ||
+                    entry.size > 12L * 1024L * 1024L
+                ) {
+                    val finalType = if (quickMediaType == PesMediaType.VIDEO_USM_CRID) {
+                        PesMediaType.VIDEO_USM_CRID
+                    } else {
+                        PesMediaType.VIDEO_SFD_MPEG
+                    }
+                    runOnUiThread {
+                        currentRawBinBytes = null
+                        currentUnpackedSubs.clear()
+                        activeTextureSubIndex = -1
+                        activePreviewBitmap = null
+                        activeDetectedMediaType = finalType
+
+                        ivTexturePreview.setImageResource(android.R.drawable.ic_media_play)
+                        tvPreviewHint.text = "Ketuk putar video"
+                        tvPreviewHint.visibility = View.VISIBLE
+
+                        btnExportRawBin.isEnabled = true
+                        btnDeleteSingleBin.isEnabled = true
+                        btnOpenMediaViewer.isEnabled = true
+                        btnOpenMediaViewer.text = "Putar / Ekstrak Video"
+                        btnReplacePng.isEnabled = false
+                        btnExportPng.isEnabled = false
+                        tvSelectedBinInfo.text = "${entry.name} | ${PesMediaInspector.getMediaLabel(finalType, entry.size)}"
+                    }
+                    return@thread
+                }
+
+                // 2. Untuk file <= 12 MB, muat penuh & bongkar tekstur/audio/teks
                 val binBytes = stagedPatches[entry.index]?.readBytes()
                     ?: AfsPatcherEngine.extractSingleEntry(img, entry)
 
@@ -655,8 +700,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                val targetBytesForMedia = if (subs.isNotEmpty()) subs[0].rawData else binBytes
-                val mediaType = PesMediaInspector.detectMediaType(targetBytesForMedia, foundBitmap != null)
+                // Cek tipe media baik dari sub[0] maupun raw binBytes
+                var mediaType = PesMediaInspector.detectMediaType(binBytes, foundBitmap != null, entry.size)
+                if (mediaType == PesMediaType.BINARY_HEX && subs.isNotEmpty()) {
+                    mediaType = PesMediaInspector.detectMediaType(subs[0].rawData, foundBitmap != null, entry.size)
+                }
 
                 runOnUiThread {
                     currentRawBinBytes = binBytes
@@ -671,22 +719,35 @@ class MainActivity : AppCompatActivity() {
 
                     if (foundBitmap != null) {
                         ivTexturePreview.setImageBitmap(foundBitmap)
+                        tvPreviewHint.text = "Ketuk buka penuh"
                         tvPreviewHint.visibility = View.VISIBLE
                         btnReplacePng.isEnabled = true
                         btnExportPng.isEnabled = true
                         btnOpenMediaViewer.text = "Lihat Gambar Penuh"
                         tvSelectedBinInfo.text = "${entry.name} | Tekstur: ${foundBitmap.width}x${foundBitmap.height} px (${subs.size} sub)"
                     } else {
-                        ivTexturePreview.setImageDrawable(null)
-                        tvPreviewHint.visibility = View.GONE
                         btnReplacePng.isEnabled = false
                         btnExportPng.isEnabled = false
-                        btnOpenMediaViewer.text = when (mediaType) {
-                            PesMediaType.AUDIO_ADX, PesMediaType.AUDIO_OGG_WAV -> "Putar Audio / Musik"
-                            PesMediaType.VIDEO_SFD_MPEG -> "Putar Video Cutscene"
-                            else -> "Lihat Teks / Data Hex"
+                        when (mediaType) {
+                            PesMediaType.AUDIO_ADX, PesMediaType.AUDIO_OGG_WAV -> {
+                                ivTexturePreview.setImageResource(android.R.drawable.ic_lock_silent_mode_off)
+                                tvPreviewHint.text = "Ketuk putar audio"
+                                tvPreviewHint.visibility = View.VISIBLE
+                                btnOpenMediaViewer.text = "Putar Audio / Musik"
+                            }
+                            PesMediaType.VIDEO_SFD_MPEG, PesMediaType.VIDEO_USM_CRID -> {
+                                ivTexturePreview.setImageResource(android.R.drawable.ic_media_play)
+                                tvPreviewHint.text = "Ketuk putar video"
+                                tvPreviewHint.visibility = View.VISIBLE
+                                btnOpenMediaViewer.text = "Putar / Ekstrak Video"
+                            }
+                            else -> {
+                                ivTexturePreview.setImageDrawable(null)
+                                tvPreviewHint.visibility = View.GONE
+                                btnOpenMediaViewer.text = "Lihat Teks / Data Hex"
+                            }
                         }
-                        val typeDesc = PesMediaInspector.getMediaLabel(mediaType, binBytes.size)
+                        val typeDesc = PesMediaInspector.getMediaLabel(mediaType, entry.size)
                         tvSelectedBinInfo.text = "${entry.name} | $typeDesc"
                     }
                 }
@@ -696,6 +757,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun readEntryHead(imgFile: File, entry: AfsEntryInfo, stagedFile: File?, maxBytes: Int): ByteArray {
+        if (stagedFile != null && stagedFile.exists()) {
+            val len = minOf(stagedFile.length(), maxBytes.toLong()).toInt()
+            val out = ByteArray(len)
+            stagedFile.inputStream().use { it.read(out) }
+            return out
+        }
+        if (entry.size <= 0L) return ByteArray(0)
+        val len = minOf(entry.size, maxBytes.toLong()).toInt()
+        val out = ByteArray(len)
+        RandomAccessFile(imgFile, "r").use { raf ->
+            raf.seek(entry.offset)
+            raf.readFully(out)
+        }
+        return out
     }
 
     private fun showFullScreenImagePreview() {
@@ -799,11 +877,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun exportCurrentBinToDownload() {
         val entry = selectedEntry ?: return
-        val bytes = currentRawBinBytes ?: return
+        val img = currentImgFile ?: return
         val exportDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PES2013_Export").apply { mkdirs() }
         val outFile = File(exportDir, "unnamed_${entry.index}.bin")
-        outFile.writeBytes(bytes)
-        Toast.makeText(this, "Tersimpan di: Download/PES2013_Export/${outFile.name}", Toast.LENGTH_LONG).show()
+
+        thread {
+            val staged = stagedPatches[entry.index]
+            if (staged != null && staged.exists()) {
+                staged.copyTo(outFile, overwrite = true)
+            } else {
+                RandomAccessFile(img, "r").use { raf ->
+                    FileOutputStream(outFile).use { fos ->
+                        raf.seek(entry.offset)
+                        val buf = ByteArray(1024 * 1024)
+                        var rem = entry.size
+                        while (rem > 0L) {
+                            val r = raf.read(buf, 0, minOf(buf.size.toLong(), rem).toInt())
+                            if (r <= 0) break
+                            fos.write(buf, 0, r)
+                            rem -= r
+                        }
+                    }
+                }
+            }
+            runOnUiThread {
+                Toast.makeText(this, "Tersimpan di: Download/PES2013_Export/${outFile.name}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun executeRebuildImg() {

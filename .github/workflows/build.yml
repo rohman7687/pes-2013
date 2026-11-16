@@ -19,9 +19,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 3. Siapkan Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: 4. Generate Gradle Wrapper
         uses: gradle/actions/setup-gradle@v4
         with:

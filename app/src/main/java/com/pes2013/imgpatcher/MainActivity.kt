@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             var count = 0
             for (uri in uris) {
                 val name = getFileNameFromUri(uri) ?: continue
-                val idx = Regex("(\d+)\.bin$", RegexOption.IGNORE_CASE).find(name)?.groupValues?.get(1)?.toIntOrNull()
+                val idx = Regex("(\\d+)\\.bin$", RegexOption.IGNORE_CASE).find(name)?.groupValues?.get(1)?.toIntOrNull()
                 if (idx != null && idx in allEntries.indices) {
                     val outFile = File(stageDir, "unnamed_$idx.bin")
                     contentResolver.openInputStream(uri)?.use { input ->

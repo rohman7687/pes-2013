@@ -5,16 +5,13 @@ import java.nio.ByteOrder
 
 object PesDdsDecoder {
     private const val DDS_HEADER_SIZE = 128
-    private const val DDS_MAGIC = 0x20534444 // "DDS "
+    private const val DDS_MAGIC = 0x20534444
 
     data class DdsHeader(
         val magic: Int,
         val height: Int,
         val width: Int,
-        val pitchOrLinearSize: Int,
-        val mipMapCount: Int,
-        val pfFlags: Int,
-        val pfFourCC: Int
+        val mipMapCount: Int
     )
 
     fun parseDdsHeader(data: ByteArray): DdsHeader? {
@@ -24,21 +21,15 @@ object PesDdsDecoder {
         val magic = buffer.int
         if (magic != DDS_MAGIC) return null
 
-        buffer.int // size
-        buffer.int // flags
+        buffer.int
+        buffer.int
         val height = buffer.int
         val width = buffer.int
-        val pitchOrLinearSize = buffer.int
-        buffer.int // depth
+        buffer.int
+        buffer.int
         val mipMapCount = buffer.int
 
-        buffer.position(buffer.position() + 44)
-
-        buffer.int // pfSize
-        val pfFlags = buffer.int
-        val pfFourCC = buffer.int
-
-        return DdsHeader(magic, height, width, pitchOrLinearSize, mipMapCount, pfFlags, pfFourCC)
+        return DdsHeader(magic, height, width, mipMapCount)
     }
 
     fun isDdsFile(data: ByteArray): Boolean {

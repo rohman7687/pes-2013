@@ -6,7 +6,6 @@ import java.util.zip.InflaterInputStream
 import java.util.zip.DeflaterOutputStream
 
 object PesZlibHelper {
-
     fun isZlibCompressed(data: ByteArray): Boolean {
         if (data.size < 2) return false
         val b0 = data[0].toInt() and 0xFF

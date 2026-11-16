@@ -1,0 +1,45 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.pes2013.imgpatcher"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.pes2013.imgpatcher"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0-Ultimate"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    // Pustaka LibVLC resmi untuk memutar file video SFD/USM PES 2013 secara langsung di dalam aplikasi
+    implementation("org.videolan.android:libvlc-all:3.5.1")
+}

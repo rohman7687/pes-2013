@@ -3,347 +3,100 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:background="#121212"
+    android:padding="16dp">
 
-    <!-- Baris Tombol Utama -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PES 2013 IMG Patcher"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="12dp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:paddingBottom="8dp">
 
         <Button
             android:id="@+id/btnOpenImg"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="3dp"
             android:layout_weight="1"
             android:text="Buka .IMG"
-            android:textSize="11sp" />
+            android:backgroundTint="#333333"
+            android:textColor="#FFFFFF"
+            android:layout_marginRight="4dp" />
 
         <Button
-            android:id="@+id/btnBatchImportBin"
+            android:id="@+id/btnRebuildImg"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
-            android:layout_marginEnd="3dp"
             android:layout_weight="1"
-            android:text="Impor .BIN"
-            android:textSize="11sp" />
+            android:text="Simpan &amp; Rebuild"
+            android:backgroundTint="#00796B"
+            android:textColor="#FFFFFF"
+            android:layout_marginLeft="4dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:paddingBottom="8dp">
 
         <Button
-            android:id="@+id/btnAddNewBin"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
-            android:layout_weight="1"
-            android:text="+ Tambah .BIN"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvCurrentImg"
+            android:id="@+id/btnOpenEditor"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="start"
-            android:singleLine="true"
-            android:text="File: Belum ada .img dibuka"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:text="Stat Editor"
+            android:backgroundTint="#455A64"
+            android:textColor="#FFFFFF"
+            android:layout_marginRight="4dp" />
 
-        <TextView
-            android:id="@+id/tvToggleGuide"
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btnDdsInspector"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="#25888888"
-            android:paddingStart="8dp"
-            android:paddingTop="2dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="2dp"
-            android:text="Panduan .IMG"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <EditText
-        android:id="@+id/etSearchIndex"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:hint="Cari nomor slot (contoh: 150 atau unnamed_150)..."
-        android:inputType="text"
-        android:padding="8dp"
-        android:textSize="13sp" />
-
-    <!-- Bilah Aksi Multi-Select ala ZArchiver -->
-    <LinearLayout
-        android:id="@+id/layoutMultiSelectBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:background="#FF212121"
-        android:orientation="vertical"
-        android:padding="6dp"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tvSelectedCount"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="0 dipilih"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnSelectRange"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:layout_marginEnd="4dp"
-                android:text="Rentang"
-                android:textSize="10sp" />
-
-            <Button
-                android:id="@+id/btnSelectAll"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:layout_marginEnd="4dp"
-                android:text="Semua"
-                android:textSize="10sp" />
-
-            <Button
-                android:id="@+id/btnCancelSelect"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:text="Batal"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnMultiCopy"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="2dp"
-                android:layout_weight="1"
-                android:text="Salin"
-                android:textSize="10sp" />
-
-            <Button
-                android:id="@+id/btnMultiPaste"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:layout_weight="1"
-                android:text="Tempel"
-                android:textSize="10sp" />
-
-            <Button
-                android:id="@+id/btnMultiExport"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:layout_weight="1"
-                android:text="Ekspor"
-                android:textSize="10sp" />
-
-            <Button
-                android:id="@+id/btnMultiDelete"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="2dp"
-                android:layout_weight="1"
-                android:backgroundTint="#C62828"
-                android:text="Hapus"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Panel Catatan Daftar File .IMG PES 2013 di Layar Awal -->
-    <ScrollView
-        android:id="@+id/svImgGuide"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="1"
-        android:background="#15888888"
-        android:padding="10dp">
-
-        <TextView
-            android:id="@+id/tvImgGuideContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:lineSpacingExtra="3dp"
-            android:textSize="12sp" />
-    </ScrollView>
-
-    <!-- Daftar Isi Slot .BIN -->
-    <ListView
-        android:id="@+id/lvArchiveEntries"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="1"
-        android:background="#15888888"
-        android:dividerHeight="1dp"
-        android:visibility="gone" />
-
-    <!-- Panel Pratinjau & Media Player Universal -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="#20888888"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <TextView
-            android:id="@+id/tvSelectedBinInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pilih salah satu slot di atas untuk pratinjau"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="148dp"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal">
-
-            <FrameLayout
-                android:layout_width="130dp"
-                android:layout_height="match_parent"
-                android:background="#FF222222">
-
-                <ImageView
-                    android:id="@+id/ivTexturePreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="Pratinjau Tekstur"
-                    android:scaleType="fitCenter" />
-
-                <TextView
-                    android:id="@+id/tvPreviewHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:background="#99000000"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:text="Ketuk buka penuh"
-                    android:textColor="#FFFFFF"
-                    android:textSize="10sp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <Button
-                    android:id="@+id/btnOpenMediaViewer"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:enabled="false"
-                    android:text="Putar / Buka Isi File"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/btnReplacePng"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:enabled="false"
-                    android:text="Ganti Gambar (PNG)"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/btnExportPng"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:enabled="false"
-                    android:text="Ekspor Gambar ke PNG"
-                    android:textSize="11sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnExportRawBin"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd="2dp"
-                        android:layout_weight="1"
-                        android:enabled="false"
-                        android:text="Ekspor .BIN"
-                        android:textSize="10sp" />
-
-                    <Button
-                        android:id="@+id/btnDeleteSingleBin"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="2dp"
-                        android:layout_weight="1"
-                        android:enabled="false"
-                        android:text="Hapus Slot"
-                        android:textSize="10sp" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
+            android:layout_weight="1"
+            android:text="DDS Info"
+            android:backgroundTint="#37474F"
+            android:textColor="#FFFFFF"
+            android:layout_marginLeft="4dp" />
     </LinearLayout>
 
     <Button
-        android:id="@+id/btnSaveRebuildImg"
+        android:id="@+id/btnFaceInspector"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="#2E7D32"
-        android:text="SIMPAN &amp; REBUILD .IMG (0 Perubahan)"
+        android:text="Face Model Inspector"
+        android:backgroundTint="#37474F"
         android:textColor="#FFFFFF"
-        android:textStyle="bold" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:max="100"
-        android:progress="0" />
+        android:layout_marginBottom="12dp" />
 
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Status: Siap"
-        android:textSize="12sp" />
+        android:text="Status: Belum ada file .img yang dimuat."
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:paddingBottom="8dp" />
+
+    <ListView
+        android:id="@+id/listViewBins"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#1E1E1E"
+        android:divider="#2C2C2C"
+        android:dividerHeight="1dp" />
 
 </LinearLayout>

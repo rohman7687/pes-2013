@@ -35,6 +35,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnDdsInspector: Button
     private lateinit var btnFaceInspector: Button
 
+    private var currentEntries: List<AfsEntry> = emptyList()
+
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -78,6 +80,18 @@ class MainActivity : AppCompatActivity() {
         btnFaceInspector.setOnClickListener {
             Toast.makeText(this, "Membuka Face Model Inspector", Toast.LENGTH_SHORT).show()
         }
+
+        listViewBins.setOnItemClickListener { _, _, position, _ ->
+            if (position < currentEntries.size) {
+                val selectedEntry = currentEntries[position]
+                tvStatus.text = "Status: Dipilih Bin ID ${selectedEntry.id} (Size: ${selectedEntry.size} bytes)"
+                Toast.makeText(
+                    this,
+                    "Membuka Bin ID: ${selectedEntry.id}\nOffset: ${selectedEntry.offset}\nSize: ${selectedEntry.size} bytes",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     private fun openFileBrowser() {
@@ -94,6 +108,7 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val entries = quickParseAfsHeader(uri)
+                currentEntries = entries
                 
                 val displayList: MutableList<String> = mutableListOf()
                 for (entry in entries) {

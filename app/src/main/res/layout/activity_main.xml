@@ -3,62 +3,53 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#121212">
 
+    <!-- Judul Aplikasi -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="PES 2013 IMG Patcher"
-        android:textColor="#FFFFFF"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="#FFFFFF"
         android:gravity="center"
         android:paddingBottom="12dp" />
 
-    <LinearLayout
+    <!-- Tombol-tombol Menu -->
+    <Button
+        android:id="@+id/btnOpenImg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="2"
-        android:paddingBottom="8dp">
+        android:text="BUKA .IMG"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#333333"
+        android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnOpenImg"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Buka .IMG"
-            android:backgroundTint="#333333"
-            android:textColor="#FFFFFF"
-            android:layout_marginRight="4dp" />
-
-        <Button
-            android:id="@+id/btnRebuildImg"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Simpan &amp; Rebuild"
-            android:backgroundTint="#00796B"
-            android:textColor="#FFFFFF"
-            android:layout_marginLeft="4dp" />
-    </LinearLayout>
+    <Button
+        android:id="@+id/btnRebuildImg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SIMPAN &amp; REBUILD"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#00796B"
+        android:layout_marginBottom="8dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="2"
-        android:paddingBottom="8dp">
+        android:layout_marginBottom="8dp">
 
         <Button
             android:id="@+id/btnOpenEditor"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Stat Editor"
-            android:backgroundTint="#455A64"
+            android:text="STAT EDITOR"
             android:textColor="#FFFFFF"
+            android:backgroundTint="#333333"
             android:layout_marginRight="4dp" />
 
         <Button
@@ -66,9 +57,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="DDS Info"
-            android:backgroundTint="#37474F"
+            android:text="DDS INFO"
             android:textColor="#FFFFFF"
+            android:backgroundTint="#333333"
             android:layout_marginLeft="4dp" />
     </LinearLayout>
 
@@ -76,27 +67,28 @@
         android:id="@+id/btnFaceInspector"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Face Model Inspector"
-        android:backgroundTint="#37474F"
+        android:text="FACE MODEL INSPECTOR"
         android:textColor="#FFFFFF"
+        android:backgroundTint="#333333"
         android:layout_marginBottom="12dp" />
 
+    <!-- Status Teks -->
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Status: Belum ada file .img yang dimuat."
-        android:textColor="#AAAAAA"
-        android:textSize="12sp"
+        android:text="Status: Siap"
+        android:textSize="14sp"
+        android:textColor="#00E676"
         android:paddingBottom="8dp" />
 
+    <!-- ListView untuk Daftar File Bin -->
     <ListView
         android:id="@+id/listViewBins"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:background="#1E1E1E"
-        android:divider="#2C2C2C"
+        android:divider="#333333"
         android:dividerHeight="1dp" />
 
 </LinearLayout>

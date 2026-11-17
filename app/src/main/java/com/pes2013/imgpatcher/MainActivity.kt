@@ -15,6 +15,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+data class AfsEntry(
+    val id: Int,
+    val offset: Long,
+    val size: Int,
+    val name: String = "unnamed_$id.bin"
+)
 
 class MainActivity : AppCompatActivity() {
 
@@ -80,11 +89,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadImgArchiveAndShowList(uri: Uri, fileName: String) {
-        tvStatus.text = "Status: Memuat $fileName (32 MB)..."
+        tvStatus.text = "Status: Memuat $fileName..."
 
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                val entries = AfsPatcherEngine.quickParseAfsHeader(applicationContext, uri)
+                val entries = quickParseAfsHeader(uri)
                 
                 val displayList: MutableList<String> = mutableListOf()
                 for (entry in entries) {
@@ -96,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                         tvStatus.text = "Status: Berhasil memuat ${entries.size} file .bin"
                         val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_list_item_1, displayList)
                         listViewBins.adapter = adapter
-                        Toast.makeText(applicationContext, "Arsip .IMG 32MB berhasil dibaca!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext, "Arsip .IMG berhasil dibaca!", Toast.LENGTH_SHORT).show()
                     } else {
                         tvStatus.text = "Status: Format .img tidak dikenali / kosong."
                     }
@@ -107,6 +116,34 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun quickParseAfsHeader(uri: Uri): List<AfsEntry> {
+        val entryList = mutableListOf<AfsEntry>()
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            val headerBuffer = ByteArray(128)
+            inputStream.read(headerBuffer)
+            val buffer = ByteBuffer.wrap(headerBuffer).order(ByteOrder.LITTLE_ENDIAN)
+
+            val magic = buffer.int
+            if (magic != 0x00534641) {
+                return emptyList()
+            }
+
+            val fileCount = buffer.int
+            val indexBytes = ByteArray(fileCount * 8)
+            inputStream.read(indexBytes)
+            val indexBuf = ByteBuffer.wrap(indexBytes).order(ByteOrder.LITTLE_ENDIAN)
+
+            for (i in 0 until fileCount) {
+                val offset = indexBuf.int.toLong() and 0xFFFFFFFFL
+                val size = indexBuf.int
+                if (offset > 0 && size > 0) {
+                    entryList.add(AfsEntry(id = i, offset = offset, size = size))
+                }
+            }
+        }
+        return entryList
     }
 
     private fun getFileNameFromUri(uri: Uri): String {

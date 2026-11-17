@@ -4,12 +4,17 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,8 +32,7 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
                 val fileName = getFileNameFromUri(uri)
-                tvStatus.text = "Status: Memuat $fileName..."
-                Toast.makeText(this, "File dipilih: $fileName", Toast.LENGTH_LONG).show()
+                loadImgArchiveAndShowList(uri, fileName)
             }
         }
     }
@@ -73,6 +77,32 @@ class MainActivity : AppCompatActivity() {
             type = "*/*"
         }
         filePickerLauncher.launch(intent)
+    }
+
+    private fun loadImgArchiveAndShowList(uri: Uri, fileName: String) {
+        tvStatus.text = "Status: Memuat $fileName (32 MB)..."
+
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val entries = AfsPatcherEngine.quickParseAfsHeader(applicationContext, uri)
+                val displayList = entries.map { "Bin ID: ${it.id} | Offset: ${it.offset} | Size: ${it.size} bytes" }
+
+                withContext(Dispatchers.Main) {
+                    if (entries.isNotEmpty()) {
+                        tvStatus.text = "Status: Berhasil memuat ${entries.size} file .bin"
+                        val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_list_item_1, displayList)
+                        listViewBins.adapter = adapter
+                        Toast.makeText(applicationContext, "Arsip .IMG 32MB berhasil dibaca!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        tvStatus.text = "Status: Format .img tidak dikenali / kosong."
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    tvStatus.text = "Status: Gagal memuat - ${e.localizedMessage}"
+                }
+            }
+        }
     }
 
     private fun getFileNameFromUri(uri: Uri): String {

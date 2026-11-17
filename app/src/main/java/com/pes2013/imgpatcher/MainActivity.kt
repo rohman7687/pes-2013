@@ -85,7 +85,11 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val entries = AfsPatcherEngine.quickParseAfsHeader(applicationContext, uri)
-                val displayList = entries.map { "Bin ID: ${it.id} | Offset: ${it.offset} | Size: ${it.size} bytes" }
+                
+                val displayList: MutableList<String> = mutableListOf()
+                for (entry in entries) {
+                    displayList.add("Bin ID: ${entry.id} | Offset: ${entry.offset} | Size: ${entry.size} bytes")
+                }
 
                 withContext(Dispatchers.Main) {
                     if (entries.isNotEmpty()) {
